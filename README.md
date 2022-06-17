@@ -13,4 +13,4 @@ My name is Ruben  and im a software engineer student from the Netherlands. Im al
 ### :mailbox:How to reach me:
 - Discord: RubenJ01#0001
 - E-mail: rubeneekhof@gmail.com
-- LinkedIn: https://www.linkedin.com/in/ruben-eekhof-977912173/
+- [LinkedIn](https://www.linkedin.com/in/ruben-eekhof-977912173/)
