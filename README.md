@@ -8,7 +8,7 @@ My name is Ruben  and im a software engineer student from the Netherlands. Im al
 
 ###  :fire: ​Statistics
 
-### ![RubenJ01's GitHub stats](https://github-readme-stats.vercel.app/api?username=RubenJ01&show_icons=true&theme=radical)
+### ![RubenJ01's GitHub stats](https://github-readme-stats.vercel.app/api?username=RubenJ01&count_private=true&show_icons=true&include_all_commits=true&count_private=true)
 
 ### :mailbox:How to reach me:
 - Discord: RubenJ01#0001
