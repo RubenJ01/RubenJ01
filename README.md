@@ -1,3 +1,5 @@
+[![wakatime](https://wakatime.com/badge/user/b1703001-fd79-463f-98bb-45bdcf205f22.svg)](https://wakatime.com/@b1703001-fd79-463f-98bb-45bdcf205f22)
+
 ### Hi there 👋
 
 My name is Ruben  and im a software engineer student from the Netherlands. Im always interested in collaborating on projects so feel free to reach out.
