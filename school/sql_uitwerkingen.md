@@ -4,8 +4,10 @@
 - [Hoe werkt GROUP BY?](#hoe-werkt-group-by-)
   * [Aggregate Functions](#aggregate-functions)
 - [Wat is een SELF JOIN?](#wat-is-een-self-join-)
-- [Week 8](#week-8)
+- [Week 6](#week-6)
   * [Opdracht 6](#opdracht-6)
+- [Week 8](#week-8)
+  * [Opdracht 6](#opdracht-6-1)
   * [Opdracht 7](#opdracht-7)
   * [Opdracht 8](#opdracht-8)
   * [Opdracht 9](#opdracht-9)
@@ -87,6 +89,74 @@ JOIN medewerker AS b ON a.chef = b.mnr;
 ```
 
 Wat doet dit precies? Bij een join voeg je de rijen samen van 2 of meer tabellen gebasseerd op een gerelateerde kolom in die tabellen. In dit geval hebben we maar 1 tabel dus maakt hij een kopie van die tabel en voegt hij ze samen. Het is hier dus wel van belang om aliasen te gebruiken om duidelijk te maken welke kolommen je precies opvraagt.
+
+## Week 6
+
+### Opdracht 6
+
+```
+Verwijder de afdeling(en) zonder medewerkers.
+```
+
+In deze query moeten we dus een afdeling verwijderen. Zoeits kan al snel misgaan dus ik raad je aan van te voren eerst een select te doen om te kijken of je query correct is. We moeten dus een query maken waarin we de afdeling zonder werknemers moeten acherhalen. Hiervoor hebben we de volgende 2 tabellen nodig:
+
+De afdeling tabel:
+
+| anr  | naam | locatie | hoofd |
+| ---- | ---- | ------- | ----- |
+
+De medewerker tabel:
+
+| mnr  | naam | voorl | functie | chef | gbdatum | maandsal | comm | afd  |
+| ---- | ---- | ----- | ------- | ---- | ------- | -------- | ---- | ---- |
+
+Eerst selecteren we alle kolommen die we nodig hebben:
+
+```sql
+SELECT a.anr
+FROM afdeling AS a;
+```
+
+We moeten er nu achter zien te komen welke afdeling geen werknemers heeft, hiervoor moeten we met de tabel medewerker joinen:
+
+```sql
+SELECT a.anr
+FROM afdeling AS a
+LEFT JOIN medewerker AS m ON a.anr = m.afd
+GROUP BY a.anr
+```
+
+We gebruiken hier een left join omdat we zoizo alle afdelingen willen zien, en we willen ook alleen de unieke zien dus gebruiken we een group by. Nu moeten we er achter zien te komen hoeveel medewerkers er in elke afdeling zitten, dit kunnen we doen met de COUNT functie:
+
+```sql
+SELECT a.anr, COUNT(m.mnr) as c # alias voor count
+FROM afdeling AS a
+LEFT JOIN medewerker AS m ON a.anr = m.afd
+GROUP BY a.anr
+```
+
+Uit dit resultaat kunnen we zien dat de afdeling met nummer 40 geen medewerkers heeft. We specificeren met HAVING dat we alleen de groepen willen zien waarbij c gelijk aan 0 is:
+
+```sql
+SELECT a.anr, COUNT(m.mnr) as c
+FROM afdeling AS a
+LEFT JOIN medewerker AS m ON a.anr = m.afd
+GROUP BY a.anr
+HAVING c = 0;
+```
+
+Alles wat we nu nog moeten doen is dit in een DELETE FROM zetten, dit kunnen we doen met een subselect:
+
+``` sql
+DELETE FROM afdeling 
+WHERE afdeling.anr = (SELECT a.anr, COUNT(m.mnr) as c
+	   FROM afdeling AS a
+	   LEFT JOIN medewerker AS m ON a.anr = m.afd
+       GROUP BY a.anr
+       HAVING c = 0);
+```
+
+
 
 ## Week 8
 
@@ -233,12 +303,12 @@ Geef een overzicht van de medewerkers die ouder zijn dan hun afdelingshoofd. Gee
 
 In deze query moeten we dus de volgende kolommen opvragen: mnr, naam, gbdatum, afdelingscode en het medewerkers nummer van het hoofd van de afdeling van alle medewerkers die ouder zijn dan hun afdelingshoofd. We hebben hiervoor 2 tabellen nodig.
 
-medewerker tabel:
+De medewerker tabel:
 
 | mnr  | naam | voorl | functie | chef | gbdatum | maandsal | comm | afd  |
 | ---- | ---- | ----- | ------- | ---- | ------- | -------- | ---- | ---- |
 
-afdeling tabel:
+De afdeling tabel:
 
 | anr  | naam | locatie | hoofd |
 | ---- | ---- | ------- | ----- |
