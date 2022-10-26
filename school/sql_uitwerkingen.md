@@ -1,15 +1,16 @@
 # SQL uitwerkingen - Ruben Eekhof
 
-- [SQL uitwerkingen - Ruben Eekhof](#sql-uitwerkingen---ruben-eekhof)
-  * [Waarom staat er een ; achter elke query?](#waarom-staat-er-een---achter-elke-query-)
-  * [Hoe werkt GROUP BY?](#hoe-werkt-group-by-)
-    + [Aggregate Functions](#aggregate-functions)
-  * [Wat is een SELF JOIN?](#wat-is-een-self-join-)
-  * [Week 8](#week-8)
-    + [Opdracht 6](#opdracht-6)
-    + [Opdracht 7](#opdracht-7)
-    + [Opdracht 8](#opdracht-8)
-    + [Opdracht 9](#opdracht-9)
+- [Waarom staat er een ; achter elke query?](#waarom-staat-er-een---achter-elke-query-)
+- [Hoe werkt GROUP BY?](#hoe-werkt-group-by-)
+  * [Aggregate Functions](#aggregate-functions)
+- [Wat is een SELF JOIN?](#wat-is-een-self-join-)
+- [Week 8](#week-8)
+  * [Opdracht 6](#opdracht-6)
+  * [Opdracht 7](#opdracht-7)
+  * [Opdracht 8](#opdracht-8)
+  * [Opdracht 9](#opdracht-9)
+  * [Opdracht 10](#opdracht-10)
+  * [Opdracht 11](#opdracht-11)
 
 ## Waarom staat er een ; achter elke query?
 
@@ -85,7 +86,7 @@ FROM medewerker AS a
 JOIN medewerker AS b ON a.chef = b.mnr;
 ```
 
-Wat doet dit precies? Bij een join voeg je de rijen samen van 2 of meer tabellen gebasseerd op een gerelateerde kolom in die tabellen. In dit geval hebben we maar 1 tabel dus makt hij een kopie van die tabel en voegt hij ze samen. Het is hier dus wel van belang om aliasen te gebruiken om duidelijk te maken welke kolommen je precies opvraagt.
+Wat doet dit precies? Bij een join voeg je de rijen samen van 2 of meer tabellen gebasseerd op een gerelateerde kolom in die tabellen. In dit geval hebben we maar 1 tabel dus maakt hij een kopie van die tabel en voegt hij ze samen. Het is hier dus wel van belang om aliasen te gebruiken om duidelijk te maken welke kolommen je precies opvraagt.
 
 ## Week 8
 
@@ -125,7 +126,7 @@ GROUP BY cursist;
 
 ### Opdracht 7
 
-```sql
+```
 Geef een overzicht van de docenten die cursussen geven of hebben gegeven met per docent het medewerkersnummer, de naam en het aantal keren dat hij/zij voor een cursus staat of stond ingepland.
 ```
 
@@ -197,7 +198,7 @@ GROUP BY cursus;
 
 ### Opdracht 9
 
-```text
+```
 Geef een overzicht van de medewerkers die meer verdienen dan hun chef.
 Geef op dit overzicht van deze medewerkers het medewerkersnummer, de naam, en het maandsalaris.
 ```
@@ -224,4 +225,133 @@ JOIN medewerker AS b ON a.chef = b.mnr
 WHERE a.maandsal > b.maandsal;
 ```
 
-...
+### Opdracht 10
+
+```` 
+Geef een overzicht van de medewerkers die ouder zijn dan hun afdelingshoofd. Geef op dit overzicht van deze medewerkers het medewerkersnummer, de naam, de geboortedatum, de afdelingscode en het medewerkersnummer van het hoofd van de afdeling.
+````
+
+In deze query moeten we dus de volgende kolommen opvragen: mnr, naam, gbdatum, afdelingscode en het medewerkers nummer van het hoofd van de afdeling van alle medewerkers die ouder zijn dan hun afdelingshoofd. We hebben hiervoor 2 tabellen nodig.
+
+medewerker tabel:
+
+| mnr  | naam | voorl | functie | chef | gbdatum | maandsal | comm | afd  |
+| ---- | ---- | ----- | ------- | ---- | ------- | -------- | ---- | ---- |
+
+afdeling tabel:
+
+| anr  | naam | locatie | hoofd |
+| ---- | ---- | ------- | ----- |
+
+Laten we eerst proberen de juiste rijen op te halen:
+
+```sql
+SELECT m.mnr, m.naam, m.gbdatum, m.afd
+FROM medewerker AS m;
+```
+
+We missen hierin nog het medewerkers nummer van het hoofd van de afdeling, deze kunnen we ophalen door de 2 tabellen te joinen:
+
+```sql
+SELECT m.mnr, m.naam, m.gbdatum, m.afd, a.hoofd
+FROM medewerker AS m
+JOIN afdeling a ON m.afd = a.anr;
+```
+
+Het enige wat we nu moeten doen is het resultaat filteren door alleen de medewerkers te laten zien die ouder zijn dan het hoofd van hun afdeling, we kunnen dit het makkelijkst doen met een simpele where clausule maar....
+
+```sql
+SELECT m.mnr, m.naam, m.gbdatum, m.afd, a.hoofd
+FROM medewerker AS m
+JOIN afdeling a ON m.afd = a.anr
+WHERE m.gbdatum < # hier hebben we de leeftijd nodig voor het hoofd van de afdeling
+# we vergelijken hier trouwens met < wat mensen met een eerdere gbdatum zijn uiteraard ouder 
+```
+
+Maar hoe komen we nu aan de leeftijd van het hoofd van de afdeling. Je kunt dit op allerlij manieren doen maar de makkelijkste (voor mij) is met een gecorelleerde subquery. De subquery hoeft alleen maar de geboortedatum van het hoofd van de afdeling weer te geven, en het hoofd van de afdeling is natuurlijk ook een medewerker dus dit kunnen we uit de medewerkers tabel ophalen:
+
+```sql
+SELECT gbdatum
+FROM medewerker AS s
+WHERE s.mnr = # hier hebben we medewerkers nummer van het hoofd van de afdeling nodig
+```
+
+In deze select missen we het medewerkers nummer van het hoofd van de afdeling maar deze kunnen we uit de hoofd query halen en komen we dus tot dit resultaat:
+
+```sql
+SELECT m.mnr, m.naam, m.gbdatum, m.afd, a.hoofd
+FROM medewerker AS m
+JOIN afdeling a ON m.afd = a.anr
+WHERE m.gbdatum < (
+    SELECT gbdatum
+    FROM medewerker AS s
+    WHERE s.mnr = a.hoofd
+);
+```
+
+### Opdracht 11
+
+```
+Geef een overzicht van de medewerkers die voor één of meer cursussen docent zijn geweest of ervoor staan ingepland, en de betreffende cursus zelf ook intern gevolgd hebben. Geef van deze docenten de medewerkerscode en de cursuscodes van de cursus(sen) waarvoor dit geldt.
+```
+
+In deze query moeten we dus de volgende kolommen opvragen: medewerkers nummer van de docent en de code van de cursus(sen) die de medewerkers zelf geven en ook intern volgen. Voor deze query hebben we de volgende 2 tabellen nodig:
+
+uitvoering tabel:
+
+| cursus | begindatum | docent | locatie |
+| ------ | ---------- | ------ | ------- |
+
+medewerker tabel:
+
+| mnr  | naam | voorl | functie | chef | gbdatum | maandsal | comm | afd  |
+| ---- | ---- | ----- | ------- | ---- | ------- | -------- | ---- | ---- |
+
+Als eerst selecteren we de kolommen die we nodig hebben:
+
+```sql
+SELECT u.docent, u.cursus
+FROM uitvoering AS u
+```
+
+Je zou ook de docent uit de medewerkers tabel kunnen ophalen, maar 1 van de vereisten aan de query was dat je alleen medewerkers wilt die de cursus ook geeft en door deze uit de uitvoering tabel te halen vereenvoudigen we de query omdat in die tabel alleen medewerkers staan die een cursus geven. Het volgende wat gecontroleerd moet worden is of die docent de cursus zelf ook wel intern volgt. Hiervoor moeten we joinen met de inschrijving tabel:
+
+``` sql
+SELECT u.docent, u.cursus
+FROM uitvoering AS u
+JOIN inschrijving AS i ON u.docent = i.cursist
+```
+
+We joinen hier op `u.docent = i.cursist` omdat we alleen docenten willen zien die ook een cursus hebben gevolgd. Maar voor deze query moeten ze niet zomaar een cursus hebben gevolgd, maar de cursus die ze zelf ook geven, we kunnen dit regelen met een where clausule:
+
+``` sql
+SELECT u.docent, u.cursus
+FROM uitvoering AS u
+JOIN inschrijving AS i ON u.docent = i.cursist
+WHERE i.cursus = u.cursus
+```
+
+En nu zijn we bijna bij het resultaat dat we willen hebben, het enige probleem is dat we nog duplicate rijen hebben. Dit kun je op 2 manieren oplossen. Met behulp van distinct:
+
+```sql
+SELECT DISTINCT u.docent, u.cursus
+FROM uitvoering AS u
+JOIN inschrijving AS i ON u.docent = i.cursist
+WHERE i.cursus = u.cursus;
+```
+
+Of met een dubbele group by:
+
+```sql
+SELECT u.docent, u.cursus
+FROM uitvoering AS u
+JOIN inschrijving AS i ON u.docent = i.cursist
+WHERE i.cursus = u.cursus
+GROUP BY u.docent, u.cursus;
+```
+
+Het effect van meerdere kolommen groeperen is als volgt:
+
+`GROUP BY u.docent`betekent: stop alle met dezelfde waarde voor `u.docent`in 1 groep.
+
+`GROUP BY u.docent, u.cursus`betekent: stop alle met dezelfde waardes voor zowel `u.docent`en `u.cursus`in 1 groep.
