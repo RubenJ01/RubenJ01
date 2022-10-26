@@ -224,3 +224,4 @@ JOIN medewerker AS b ON a.chef = b.mnr
 WHERE a.maandsal > b.maandsal;
 ```
 
+...
