@@ -6,12 +6,16 @@
 - [Wat is een SELF JOIN?](#wat-is-een-self-join-)
 - [Week 6](#week-6)
   * [Opdracht 6](#opdracht-6)
-- [Week 8](#week-8)
-  * [Opdracht 6](#opdracht-6-1)
   * [Opdracht 7](#opdracht-7)
   * [Opdracht 8](#opdracht-8)
   * [Opdracht 9](#opdracht-9)
   * [Opdracht 10](#opdracht-10)
+- [Week 8](#week-8)
+  * [Opdracht 6](#opdracht-6-1)
+  * [Opdracht 7](#opdracht-7-1)
+  * [Opdracht 8](#opdracht-8-1)
+  * [Opdracht 9](#opdracht-9-1)
+  * [Opdracht 10](#opdracht-10-1)
   * [Opdracht 11](#opdracht-11)
 
 ## Waarom staat er een ; achter elke query?
@@ -149,14 +153,135 @@ Alles wat we nu nog moeten doen is dit in een DELETE FROM zetten, dit kunnen we 
 
 ``` sql
 DELETE FROM afdeling 
-WHERE afdeling.anr = (SELECT a.anr, COUNT(m.mnr) as c
+WHERE afdeling.anr = (SELECT a.anr 
 	   FROM afdeling AS a
 	   LEFT JOIN medewerker AS m ON a.anr = m.afd
        GROUP BY a.anr
-       HAVING c = 0);
+       HAVING COUNT(m.mnr) = 0);
 ```
 
+### Opdracht 7
 
+```
+Herstel de oude situatie van de database door de verwijderde afdeling(en) weer aan de database toe te voegen. Geef de query of query's die je daarvoor nodig hebt.
+```
+
+Voor deze query moeten we een rij aan de database toevoegen, namenlijk de rij die in de vorige opgave is verwijdert uit de afdeling tabel:
+
+| anr  | naam            | locatie   | hoofd |
+| ---- | --------------- | --------- | ----- |
+| 40   | PERSONEELSZAKEN | GRONINGEN | 7839  |
+
+Hiervoor kunnen we `INSERT INTO`gebruiken:
+
+```sql
+INSERT INTO afdeling(anr,naam,locatie,hoofd) VALUES(40, "PERSONEELSZAKEN", "GRONINGEN", 7839);
+```
+
+### Opdracht 8
+
+```
+Medewerkers die hoofd zijn van een afdeling krijgen een verhoging van hun maandsalaris van 200 euro. Bedenk welke query je nodig hebt om dit door te voeren in de database.
+```
+
+Voor deze query moeten we het maandsal van medewerkers aanpassen die hoofd zijn van hun afdeling. Hiervoor kunnen we het beste eerst een select schrijven waarin we achterhalen welke medewerkers hoofd zijn van een afdeling. Hiervor hebben we de volgende tabellen nodig.
+
+De afdeling tabel:
+
+| anr  | naam | locatie | hoofd |
+| ---- | ---- | ------- | ----- |
+
+De medewerker tabel:
+
+| mnr  | naam | voorl | functie | chef | gbdatum | maandsal | comm | afd  |
+| ---- | ---- | ----- | ------- | ---- | ------- | -------- | ---- | ---- |
+
+De hoofden van de afdelingen vinden is eenvoudig:
+
+```sql
+SELECT hoofd 
+FROM afdeling;
+```
+
+De maandsalarisen daarintegen moeten we uit de medewerker tabel halen, we kunnen deze ophalen met een simpele join:
+
+```sql
+SELECT a.hoofd, m.maandsal
+FROM afdeling AS a
+JOIN medewerker AS m ON a.hoofd = m.mnr;
+```
+
+Alleen voor deze query moeten we geen SELECT schrijven maar een UPDATE query:
+
+```sql
+UPDATE medewerker AS m
+JOIN afdeling AS a
+ON a.hoofd = m.mnr
+SET m.maandsal = m.maandsal + 200;
+```
+
+Deze query is misschien wat verwarrend omdat de volgorde apart lijkt. FROM is namenlijk niet mogelijk in een UPDATE query. We joinen dus direct na de UPDATE.
+
+### Opdracht 9
+
+```
+Bedenk nu ook de query of query's waarmee je de wijzigingen van opdracht 8 kunt terugdraaien.
+```
+
+Deze query is exact hetzelde als in de vorige opgave maar we verlagen nu het maandsal in plaats van hem te verhogen:
+
+```sql
+UPDATE medewerker AS m
+JOIN afdeling AS a
+ON a.hoofd = m.mnr
+SET m.maandsal = m.maandsal - 200;
+```
+
+### Opdracht 10
+
+```
+Geef een overzicht van de cursussen die meer dan 3 dagen duren en door de docent met medewerkersnummer 7369 gegeven worden of zijn.
+```
+
+Voor deze query moeten alle rijen opvragen uit de cursus tabel, maar we hebben ook het medewerkers nummer nodig om te checken of de cursus door medewerkersnummer 736 word gegeven. We hebben hiervoor de volgende 2 tabellen nodig:
+
+De medewerker tabel:
+
+| mnr  | naam | voorl | functie | chef | gbdatum | maandsal | comm | afd  |
+| ---- | ---- | ----- | ------- | ---- | ------- | -------- | ---- | ---- |
+
+De cursus tabel:
+
+| code | omschrijving | type | lengte |
+| ---- | ------------ | ---- | ------ |
+
+We beginnen met het selecteren van alle waardes die we nodig hebben:
+
+```sql
+SELECT c.code, c.omschrijving, c.type, c.lengte
+FROM cursus AS c;
+```
+
+Het enige wat we nu nog moeten doen is kijken of de docent gelijk is aan 7369 en of de lengte groter is dan 3. Dit kunnen we doen door met de uitvoering tabel te JOINEN:
+
+```sql
+SELECT c.code, c.omschrijving, c.type, c.lengte
+FROM cursus AS c
+JOIN uitvoering AS u
+ON c.code = u.cursus;
+```
+
+En met een simpele WHERE clausule kunnen we het resultaat hieruit filteren:
+
+```sql
+SELECT DISTINCT c.code, c.omschrijving, c.type, c.lengte
+FROM cursus AS c
+JOIN uitvoering AS U
+ON c.code = u.cursus
+WHERE u.docent = 7369 && c.lengte > 3;
+```
+
+DISTINCT is toegevoegd omdat we niks hebben aan duplicate resultaten.
 
 ## Week 8
 
@@ -286,7 +411,7 @@ FROM medewerker AS a
 JOIN medewerker AS b ON a.chef = b.mnr;
 ```
 
-Dit resultaat bevat veel dubbele waardes omdat als je `a.mnr` joint op `b.chef`je alle rijen pakt waarin deze waardes gelijk zijn van beide medewerkers tabellen. Alles wat je nu nog moet doen is alleen de salarissen laten zien met een hoger salaris dan hun chef. Dit kan je doen met een simpele where clausule:
+Dit resultaat bevat veel dubbele waardes omdat als je `a.mnr` joint op `b.chef`je alle rijen pakt waarin deze waardes gelijk zijn van beide medewerkers tabellen. Alles wat je nu nog moet doen is alleen de salarissen laten zien met een hoger salaris dan hun chef. Dit kan je doen met een simpele where clausule:
 
 ``` sql
 SELECT a.mnr, a.naam, a.maandsal
