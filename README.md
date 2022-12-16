@@ -13,6 +13,6 @@ My name is Ruben  and im a software engineer student from the Netherlands. Im al
 ### ![RubenJ01's GitHub stats](https://github-readme-stats.vercel.app/api?username=RubenJ01&count_private=true&show_icons=true&include_all_commits=true&count_private=true)
 
 ### :mailbox:How to reach me:
-- Discord: RubenJ01#0001
+- Discord: `RubenJ01#0001`
 - E-mail: rubeneekhof@gmail.com
 - [LinkedIn](https://www.linkedin.com/in/ruben-eekhof-977912173/)
